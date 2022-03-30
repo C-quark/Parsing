@@ -1,0 +1,28 @@
+from bs4 import BeautifulSoup
+import requests
+
+count = 0
+
+for page in range(0, 1000):
+    url = "https://nnz-ipc.ru/catalogue/comm/ethernet/unmanaged/?p=" + str(page)
+
+    request = requests.get(url)
+
+    soup = BeautifulSoup(request.text, "html.parser")
+
+    entries = soup.find_all("div", class_ = "catcard_entry")
+    if len(entries) == 0:
+        break
+
+    for entry in entries:
+        count = count+1
+        name = entry.find("meta", {"itemprop":"name"})
+        price = entry.find("div", {"class":"catcard_price_strong"})
+        stock = entry.find("ul", {"class":"avail_list"})
+        result = str(name.get("content"))
+        if price != None:
+            result = result + " " + str(price.text)
+        if stock != None:
+            result = result + " " + str(stock.text)
+        print(result)
+print(count)
