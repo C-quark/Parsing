@@ -1,11 +1,37 @@
 from bs4 import BeautifulSoup
 import requests
 
+Programmable_controllers = "https://nnz-ipc.ru/catalogue/automation/controllers/"
+Signal_input_output_modules = "https://nnz-ipc.ru/catalogue/automation/io/"
+Signal_I_O_boards = "https://nnz-ipc.ru/catalogue/automation/io_boards/"
+Modular_I_O_cages = "https://nnz-ipc.ru/catalogue/automation/extension_chassis/"
+Specialized_modules = "https://nnz-ipc.ru/catalogue/automation/specialized_modules/"
+Specialized_boards = "https://nnz-ipc.ru/catalogue/automation/specialized_boards/"
+Operator_panels_HMI = "https://nnz-ipc.ru/catalogue/automation/hmi/"
+IP_video_surveillance = "https://nnz-ipc.ru/catalogue/automation/video/"
+Measurement_systems = "https://nnz-ipc.ru/catalogue/automation/remote_data_logger/"
+L_card_equipment = "https://nnz-ipc.ru/catalogue/automation/lcard/"
+Automation_accessories = "https://nnz-ipc.ru/catalogue/automation/automation_accesories/"
+Industrial_Ethernet = "https://nnz-ipc.ru/catalogue/comm/ethernet/"
+COM_Port_to_Ethernet_Converters = "https://nnz-ipc.ru/catalogue/comm/serial_to_ethernet/"
+Multiport_RS_232_422_485_and_CAN_cards = "https://nnz-ipc.ru/catalogue/comm/serial/"
+Wireless_access = "https://nnz-ipc.ru/catalogue/comm/wireless/"
+Converters_and_repeaters = "https://nnz-ipc.ru/catalogue/comm/converters/"
+Software = "https://nnz-ipc.ru/catalogue/comm/software/"
+Accessories_for_switches = "https://nnz-ipc.ru/catalogue/comm/network_accesories/"
+Accessories = "https://nnz-ipc.ru/catalogue/comm/accessories/"
+Remote_Access_Tools = "https://nnz-ipc.ru/catalogue/dc_equipment/remote_access/"
+Power_distribution = "https://nnz-ipc.ru/catalogue/dc_equipment/power_distribution/"
+Dc_accessories = "https://nnz-ipc.ru/catalogue/dc_equipment/dc_accessories/"
+
+ACS = [Programmable_controllers, Signal_input_output_modules, Signal_I_O_boards, Modular_I_O_cages, Specialized_modules, Specialized_boards, Operator_panels_HMI, IP_video_surveillance, Measurement_systems,
+L_card_equipment, Automation_accessories, Industrial_Ethernet, COM_Port_to_Ethernet_Converters, Multiport_RS_232_422_485_and_CAN_cards, Wireless_access, Converters_and_repeaters, Software, Accessories_for_switches, Accessories,
+Remote_Access_Tools, Power_distribution, Dc_accessories]
+
 count = 0
 
-for page in range(0, 1000):
-    url = "https://nnz-ipc.ru/catalogue/comm/ethernet/unmanaged/?p=" + str(page)
-
+for ur in ACS:
+    url = ur + "?pa=100"
     request = requests.get(url)
 
     soup = BeautifulSoup(request.text, "html.parser")
