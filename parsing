@@ -1,5 +1,14 @@
 from bs4 import BeautifulSoup
 import requests
+import xlwings as xw
+import pandas as pd
+
+exel = xw.Book('Парсинг калек.xlsx')
+list1 = exel.sheets['Лист1']
+table = list1.range('A1:G5000').options(pd.DataFrame, header = 1, index = False).value
+list1.range('A1:G1').value = ['Наименование', 'Цена', 'Москва', 'Санкт-Петербург', 'Новоcибирск', 'Товары в пути', 'Замена']
+table = {'Наименование': [], 'Цена': [], 'Москва': [], 'Санкт-Петербург': [], 'Новоcибирск': [], 'Товары в пути': [], 'Замена': []}
+
 
 Programmable_controllers = "https://nnz-ipc.ru/catalogue/automation/controllers/"
 Signal_input_output_modules = "https://nnz-ipc.ru/catalogue/automation/io/"
@@ -28,7 +37,7 @@ ACS = [Programmable_controllers, Signal_input_output_modules, Signal_I_O_boards,
 L_card_equipment, Automation_accessories, Industrial_Ethernet, COM_Port_to_Ethernet_Converters, Multiport_RS_232_422_485_and_CAN_cards, Wireless_access, Converters_and_repeaters, Software, Accessories_for_switches, Accessories,
 Remote_Access_Tools, Power_distribution, Dc_accessories]
 
-count = 0
+entry_count = 0
 
 for ur in ACS:
     url = ur + "?pa=100"
@@ -41,14 +50,31 @@ for ur in ACS:
         break
 
     for entry in entries:
-        count = count+1
+        entry_count = entry_count+1
         name = entry.find("meta", {"itemprop":"name"})
         price = entry.find("div", {"class":"catcard_price_strong"})
         stock = entry.find("ul", {"class":"avail_list"})
-        result = str(name.get("content"))
+        if stock is not None:
+            city_counts = stock.find_all("li")
+            for cc in city_counts:
+                city = cc.find("span")
+                count = cc.find("b")
+                town = str(city.text).lower()
+                if town == 'москва':
+                    table['Москва'].append(str(count.text))
+                elif town == 'санкт-петербург':
+                    table['Санкт-петербург'].append(str(count.text))
+                elif town == 'новосибирск':
+                    table['Новосибирск'].append(str(count.text))
+                elif town == 'в пути':
+                    table['В пути'].append(str(count.text))
+                elif town == 'замена':
+                    table['Замена'].append(str(count.text))
+        table['Наименование'].append(str(name.get("content")))
         if price != None:
-            result = result + " " + str(price.text)
-        if stock != None:
-            result = result + " " + str(stock.text)
-        print(result)
-print(count)
+            table['Цена'].append(str(price.text))
+        else:
+            table['Цена'].append('нет цены')
+        print(table)
+
+print(entry_count)
