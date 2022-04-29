@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import xlwings as xw
 import pandas as pd
+import openpyxt
 
 #exel = xw.Book('Парсинг калек.xlsx')
 #list1 = exel.sheets['Лист1']
