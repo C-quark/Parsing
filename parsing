@@ -4,10 +4,6 @@ import xlwings as xw
 import pandas as pd
 import openpyxt
 
-#exel = xw.Book('Парсинг калек.xlsx')
-#list1 = exel.sheets['Лист1']
-#table = list1.range('A1:G5000').options(pd.DataFrame, header = 1, index = False).value
-#list1.range('A1:G1').value = ['Наименование', 'Цена', 'Москва', 'Санкт-Петербург', 'Новоcибирск', 'Товары в пути', 'Замена']
 table = {'Наименование': [], 'Цена': [], 'Москва': [], 'Санкт-Петербург': [], 'Новосибирск': [], 'Екатеринбург': [], 'Товары в пути': [], 'Замена от производителя': []}
 
 Programmable_controllers = "https://nnz-ipc.ru/catalogue/automation/controllers/"
