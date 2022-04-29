@@ -3,12 +3,11 @@ import requests
 import xlwings as xw
 import pandas as pd
 
-exel = xw.Book('Парсинг калек.xlsx')
-list1 = exel.sheets['Лист1']
-table = list1.range('A1:G5000').options(pd.DataFrame, header = 1, index = False).value
-list1.range('A1:G1').value = ['Наименование', 'Цена', 'Москва', 'Санкт-Петербург', 'Новоcибирск', 'Товары в пути', 'Замена']
-table = {'Наименование': [], 'Цена': [], 'Москва': [], 'Санкт-Петербург': [], 'Новоcибирск': [], 'Товары в пути': [], 'Замена': []}
-
+#exel = xw.Book('Парсинг калек.xlsx')
+#list1 = exel.sheets['Лист1']
+#table = list1.range('A1:G5000').options(pd.DataFrame, header = 1, index = False).value
+#list1.range('A1:G1').value = ['Наименование', 'Цена', 'Москва', 'Санкт-Петербург', 'Новоcибирск', 'Товары в пути', 'Замена']
+table = {'Наименование': [], 'Цена': [], 'Москва': [], 'Санкт-Петербург': [], 'Новосибирск': [], 'Екатеринбург': [], 'Товары в пути': [], 'Замена от производителя': []}
 
 Programmable_controllers = "https://nnz-ipc.ru/catalogue/automation/controllers/"
 Signal_input_output_modules = "https://nnz-ipc.ru/catalogue/automation/io/"
@@ -39,6 +38,14 @@ Remote_Access_Tools, Power_distribution, Dc_accessories]
 
 entry_count = 0
 
+all_cities = set(['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Товары в пути', 'Замена от производителя'])
+
+def add_cities(cities, values):
+    for i in range(len(cities)):
+        table[cities[i]].append(values[i])
+    for city in all_cities.difference(set(cities)):
+        table[city].append('0')
+
 for ur in ACS:
     url = ur + "?pa=100"
     request = requests.get(url)
@@ -56,25 +63,25 @@ for ur in ACS:
         stock = entry.find("ul", {"class":"avail_list"})
         if stock is not None:
             city_counts = stock.find_all("li")
+            cities = []
+            values = []
             for cc in city_counts:
                 city = cc.find("span")
                 count = cc.find("b")
-                town = str(city.text).lower()
-                if town == 'москва':
-                    table['Москва'].append(str(count.text))
-                elif town == 'санкт-петербург':
-                    table['Санкт-петербург'].append(str(count.text))
-                elif town == 'новосибирск':
-                    table['Новосибирск'].append(str(count.text))
-                elif town == 'в пути':
-                    table['В пути'].append(str(count.text))
-                elif town == 'замена':
-                    table['Замена'].append(str(count.text))
+                town = str(city.text)
+                cities.append(town)
+                values.append(str(count.text))
+            add_cities(cities, values)
+        else:
+            add_cities([], [])
+
         table['Наименование'].append(str(name.get("content")))
         if price != None:
             table['Цена'].append(str(price.text))
         else:
             table['Цена'].append('нет цены')
-        print(table)
 
 print(entry_count)
+print(table)
+df = pd.DataFrame(table)
+df.to_excel('parsing_NNC.xlsx')
