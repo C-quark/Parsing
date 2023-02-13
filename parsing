@@ -2,9 +2,9 @@ from bs4 import BeautifulSoup
 import requests
 import xlwings as xw
 import pandas as pd
-import openpyxt
+import openpyxl
 
-table = {'Наименование': [], 'Цена': [], 'Москва': [], 'Санкт-Петербург': [], 'Новосибирск': [], 'Екатеринбург': [], 'Товары в пути': [], 'Замена от производителя': []}
+table = {'Наименование': [], 'Цена': [], 'Производитель': [], 'Москва': [], 'Санкт-Петербург': [], 'Новосибирск': [], 'Екатеринбург': [], 'Товары в пути': [], 'Замена от производителя': [], 'Доступно для резерва': []}
 
 Programmable_controllers = "https://nnz-ipc.ru/catalogue/automation/controllers/"
 Signal_input_output_modules = "https://nnz-ipc.ru/catalogue/automation/io/"
@@ -35,13 +35,29 @@ Remote_Access_Tools, Power_distribution, Dc_accessories]
 
 entry_count = 0
 
-all_cities = set(['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Товары в пути', 'Замена от производителя'])
+all_cities = set(['Москва', 'Санкт-Петербург', 'Новосибирск', 'Екатеринбург', 'Товары в пути'])
+end_of_life = set(['Замена от производителя'])
+all_reserved = set(['Доступно для резерва'])
 
-def add_cities(cities, values):
-    for i in range(len(cities)):
-        table[cities[i]].append(values[i])
-    for city in all_cities.difference(set(cities)):
-        table[city].append('0')
+def add_data(data, values, plaques):
+    for i in range(len(data)):
+        table[data[i]].append(values[i])
+    for plaque in plaques.difference(set(data)):
+        table[plaque].append('0')
+
+def process_data(raw_data, plaques):
+    if raw_data is not None:
+        counts = raw_data.find_all("li")
+        names = []
+        values = []
+        for data in counts:
+            name = str(data.find("span").text)
+            count = str(data.find("b").text)
+            names.append(name)
+            values.append(count)
+        add_data(names, values, plaques)
+    else:
+        add_data([], [], plaques)
 
 for ur in ACS:
     url = ur + "?pa=100"
@@ -56,29 +72,23 @@ for ur in ACS:
     for entry in entries:
         entry_count = entry_count+1
         name = entry.find("meta", {"itemprop":"name"})
+        vendor = entry.find("span", {"itemprop":"brand"})
         price = entry.find("div", {"class":"catcard_price_strong"})
-        stock = entry.find("ul", {"class":"avail_list"})
-        if stock is not None:
-            city_counts = stock.find_all("li")
-            cities = []
-            values = []
-            for cc in city_counts:
-                city = cc.find("span")
-                count = cc.find("b")
-                town = str(city.text)
-                cities.append(town)
-                values.append(str(count.text))
-            add_cities(cities, values)
-        else:
-            add_cities([], [])
+        stock = entry.find("div", {"class":"infobox availbox_popup cs_popup"})
+        reserved = entry.find("div", {"class":"infobox infobox-road availbox_popup cs_popup"})
+        eol = entry.find("div", {"class":"infobox infobox-single infobox-outprod availbox_popup cs_popup"})
+
+        process_data(reserved, all_reserved)
+        process_data(eol, end_of_life)
+        process_data(stock, all_cities)
 
         table['Наименование'].append(str(name.get("content")))
+        table['Производитель'].append(str(vendor.text))
         if price != None:
             table['Цена'].append(str(price.text))
         else:
             table['Цена'].append('нет цены')
 
 print(entry_count)
-print(table)
 df = pd.DataFrame(table)
-df.to_excel('parsing_NNC.xlsx')
+df.to_excel('parsing_kalek.xlsx')
